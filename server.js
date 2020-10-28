@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
+const { errorNotFound, errorHandler } = require("./middlewares/errorHandler");
 const userRoutes = require("./routes/users");
 
 const app = express();
@@ -25,7 +26,11 @@ mongoose
 app.use(express.json({ extended: true }));
 
 //route middleware
-app.use("/", userRoutes);
+app.use("/api/users", userRoutes);
+
+//error middleware
+app.use(errorNotFound);
+app.use(errorHandler);
 
 //Server Setup
 const port = process.env.PORT || 8000;

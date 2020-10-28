@@ -1,12 +1,11 @@
 const router = require("express").Router();
 const {
-  userSigninValidator,
+  userSignupValidator,
   userSigninValidator,
 } = require("../validators/auth");
 const { runValidation } = require("../validators");
+const { register } = require("../controllers/users");
 
-router.get("/", (req, res) => {
-  res.send("User ");
-});
+router.post("/register", userSignupValidator, runValidation, register);
 
 module.exports = router;
