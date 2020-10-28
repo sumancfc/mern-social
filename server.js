@@ -2,10 +2,13 @@ const express = require("express");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
+const userRoutes = require("./routes/users");
+
 const app = express();
 
 const url = process.env.DATABASE;
 
+//Database Connection
 mongoose
   .connect(url, {
     useCreateIndex: true,
@@ -18,6 +21,13 @@ mongoose
   })
   .catch((err) => console.error(err.message));
 
+//Middleware
+app.use(express.json({ extended: true }));
+
+//route middleware
+app.use("/", userRoutes);
+
+//Server Setup
 const port = process.env.PORT || 8000;
 
 app.listen(port, () => {
