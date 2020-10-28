@@ -4,8 +4,9 @@ const {
   userSigninValidator,
 } = require("../validators/auth");
 const { runValidation } = require("../validators");
-const { register } = require("../controllers/users");
+const { register, login } = require("../controllers/users");
 
 router.post("/register", userSignupValidator, runValidation, register);
+router.post("/login", userSigninValidator, runValidation, login);
 
 module.exports = router;
