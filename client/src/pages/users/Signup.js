@@ -38,7 +38,7 @@ const Signup = ({ history }) => {
     };
 
     createUser(user).then((data) => {
-      if (data.error) {
+      if (data && data.error) {
         setValues({ ...values, error: data.error });
       } else {
         setValues({ ...values, error: "", redirectToSignin: true });

@@ -4,23 +4,33 @@ import Card from "react-bootstrap/Card";
 import { Link, Redirect } from "react-router-dom";
 import { deleteUser, getUserById } from "../../api/user";
 import auth from "../../helpers/auth";
+import FollowUnfollow from "./FollowUnfollow";
+import FindUser from "./FindUser";
 
 const Profile = ({ match }) => {
-  const [user, setUser] = useState({});
-  const [redirectToSignin, setRedirectToSignin] = useState(false);
-  const [redirect, setRedirect] = useState(false);
+  const [values, setValues] = useState({
+    user: { following: [], followers: [] },
+    redirectToSignin: false,
+    redirect: false,
+    following: false,
+  });
+
+  const { user, redirect, redirectToSignin, following } = values;
+
+  const jwt = auth.isAuthenticated();
 
   useEffect(() => {
     const abortController = new AbortController();
     const signal = abortController.signal;
-    const jwt = auth.isAuthenticated();
 
     getUserById({ userId: match.params.userId }, { t: jwt.token }, signal).then(
       (data) => {
         if (data && data.error) {
-          setRedirectToSignin(true);
+          setValues({ ...values, redirectToSignin: true });
         } else {
-          setUser(data);
+          let following = checkUserFollow(data);
+          // console.log(following);
+          setValues({ ...values, user: data, following: following });
         }
       }
     );
@@ -28,22 +38,45 @@ const Profile = ({ match }) => {
     return function cleanup() {
       abortController.abort();
     };
-  }, [match.params.userId]);
+  }, [match.params.userId, jwt.token]);
+
+  //check user follow
+  const checkUserFollow = (user) => {
+    const userMatch = user.followers.some((follower) => {
+      return follower._id === jwt.user._id;
+    });
+
+    return userMatch;
+  };
+
+  const clickFollowButton = (callApi) => {
+    callApi(
+      {
+        userId: jwt.user._id,
+      },
+      { t: jwt.token },
+      user._id
+    ).then((data) => {
+      if (data && data.error) {
+        setValues({ ...values, error: data.error });
+      } else {
+        setValues({ ...values, user: data, following: !values.following });
+      }
+    });
+  };
 
   if (redirectToSignin) {
     return <Redirect to='/signin' />;
   }
 
   const handleDelete = () => {
-    const jwt = auth.isAuthenticated();
-
     deleteUser({ userId: match.params.userId }, { t: jwt.token }).then(
       (data) => {
         if (data && data.error) {
           console.log(data.error);
         } else {
           auth.clearJWT(() => console.log("deleted"));
-          setRedirect(true);
+          setValues({ ...values, redirect: true });
         }
       }
     );
@@ -69,16 +102,23 @@ const Profile = ({ match }) => {
             Joined: {new Date(user.createdAt).toDateString()}
           </Card.Text>
           {auth.isAuthenticated().user &&
-            auth.isAuthenticated().user._id === user._id && (
-              <Card.Body>
-                <Card.Text>
-                  <Link to={"/user/edit/" + user._id}>Edit</Link>
-                </Card.Text>
-                <button onClick={handleDelete}>Delete</button>
-              </Card.Body>
-            )}
+          auth.isAuthenticated().user._id === user._id ? (
+            <Card.Body>
+              <Card.Text>
+                <Link to={"/user/edit/" + user._id}>Edit</Link>
+              </Card.Text>
+              <button onClick={handleDelete}>Delete</button>
+            </Card.Body>
+          ) : (
+            <FollowUnfollow
+              following={following}
+              onButtonClick={clickFollowButton}
+            />
+          )}
         </Card.Body>
       </Card>
+
+      <FindUser />
     </div>
   );
 };

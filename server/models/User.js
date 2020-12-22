@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const crypto = require("crypto");
+const { ObjectId } = mongoose.Schema;
 
 const userSchema = new mongoose.Schema(
   {
@@ -29,6 +30,8 @@ const userSchema = new mongoose.Schema(
     },
     salt: String,
     role: { type: Number, default: 0 },
+    following: [{ type: ObjectId, ref: "User" }],
+    followers: [{ type: ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

@@ -11,9 +11,21 @@ const {
   updateUser,
   deleteUser,
   photo,
+  addFollowing,
+  addFollower,
+  removeFollowing,
+  removeFollower,
+  findUser,
 } = require("../controllers/user");
 
 router.route("/user/photo/:userId").get(photo);
+
+router.route("/user/follow").put(requireSignin, addFollowing, addFollower);
+router
+  .route("/user/unfollow")
+  .put(requireSignin, removeFollowing, removeFollower);
+
+router.route("/user/finduser/:userId").get(requireSignin, findUser);
 
 router.route("/user/signup").post(createUser);
 router.route("/users").get(getUsers);

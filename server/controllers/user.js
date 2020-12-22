@@ -36,7 +36,10 @@ exports.getUsers = async (req, res) => {
 //get user id
 exports.userId = async (req, res, next, id) => {
   try {
-    let user = await User.findById(id);
+    let user = await User.findById(id)
+      .populate("following", "_id name")
+      .populate("followers", "_id name")
+      .exec();
 
     if (!user)
       return res.status("400").json({
@@ -113,4 +116,88 @@ exports.photo = (req, res, next) => {
     return res.send(req.profile.photo.data);
   }
   next();
+};
+
+//add user following
+exports.addFollowing = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(req.body.userId, {
+      $push: { following: req.body.followId },
+    });
+    next();
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler(err),
+    });
+  }
+};
+
+//add followers
+exports.addFollower = async (req, res) => {
+  try {
+    let result = await User.findByIdAndUpdate(
+      req.body.followId,
+      { $push: { followers: req.body.userId } },
+      { new: true }
+    )
+      .populate("following", "_id name")
+      .populate("followers", "_id name")
+      .exec();
+    result.hashed_password = undefined;
+    result.salt = undefined;
+    res.json(result);
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler(err),
+    });
+  }
+};
+
+//remove user following
+exports.removeFollowing = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(req.body.userId, {
+      $pull: { following: req.body.unfollowId },
+    });
+    next();
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler(err),
+    });
+  }
+};
+
+//remove followers
+exports.removeFollower = async (req, res) => {
+  try {
+    let unfollow = await User.findByIdAndUpdate(
+      req.body.unfollowId,
+      { $pull: { followers: req.body.userId } },
+      { new: true }
+    )
+      .populate("following", "_id name")
+      .populate("followers", "_id name")
+      .exec();
+    unfollow.hashed_password = undefined;
+    unfollow.salt = undefined;
+    res.json(unfollow);
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err),
+    });
+  }
+};
+
+//find user by id
+exports.findUser = async (req, res) => {
+  let following = req.profile.following;
+  following.push(req.profile._id);
+  try {
+    let users = await User.find({ _id: { $nin: following } }).select("name");
+    res.json(users);
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler(err),
+    });
+  }
 };
