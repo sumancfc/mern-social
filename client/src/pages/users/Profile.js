@@ -10,27 +10,25 @@ const Profile = ({ match }) => {
   const [redirectToSignin, setRedirectToSignin] = useState(false);
   const [redirect, setRedirect] = useState(false);
 
-  const { userId } = match.params;
-
-  //   console.log(user);
-
   useEffect(() => {
     const abortController = new AbortController();
     const signal = abortController.signal;
     const jwt = auth.isAuthenticated();
 
-    getUserById(userId, { t: jwt.token }, signal).then((data) => {
-      if (data && data.error) {
-        setRedirectToSignin(true);
-      } else {
-        setUser(data);
+    getUserById({ userId: match.params.userId }, { t: jwt.token }, signal).then(
+      (data) => {
+        if (data && data.error) {
+          setRedirectToSignin(true);
+        } else {
+          setUser(data);
+        }
       }
-    });
+    );
 
     return function cleanup() {
       abortController.abort();
     };
-  }, [userId]);
+  }, [match.params.userId]);
 
   if (redirectToSignin) {
     return <Redirect to='/signin' />;
@@ -39,14 +37,16 @@ const Profile = ({ match }) => {
   const handleDelete = () => {
     const jwt = auth.isAuthenticated();
 
-    deleteUser(userId, { t: jwt.token }).then((data) => {
-      if (data && data.error) {
-        console.log(data.error);
-      } else {
-        auth.clearJWT(() => console.log("deleted"));
-        setRedirect(true);
+    deleteUser({ userId: match.params.userId }, { t: jwt.token }).then(
+      (data) => {
+        if (data && data.error) {
+          console.log(data.error);
+        } else {
+          auth.clearJWT(() => console.log("deleted"));
+          setRedirect(true);
+        }
       }
-    });
+    );
   };
 
   if (redirect) {
@@ -72,7 +72,7 @@ const Profile = ({ match }) => {
             auth.isAuthenticated().user._id === user._id && (
               <Card.Body>
                 <Card.Text>
-                  <Link to={`/user/edit/${userId}`}>Edit</Link>
+                  <Link to={"/user/edit/" + user._id}>Edit</Link>
                 </Card.Text>
                 <button onClick={handleDelete}>Delete</button>
               </Card.Body>

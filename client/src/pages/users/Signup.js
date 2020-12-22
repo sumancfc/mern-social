@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Form from "react-bootstrap/Form";
 import Jumbotron from "react-bootstrap/Jumbotron";
 import Button from "react-bootstrap/Button";
 import { createUser } from "../../api/user";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
+import auth from "../../helpers/auth";
 
 const Signup = ({ history }) => {
   const [values, setValues] = useState({
@@ -11,12 +12,20 @@ const Signup = ({ history }) => {
     email: "",
     password: "",
     error: "",
+    redirectToSignin: false,
   });
 
-  const { name, email, password, error } = values;
+  const { name, email, password, error, redirectToSignin } = values;
+
+  const jwt = auth.isAuthenticated();
+
+  useEffect(() => {
+    if (jwt.token) {
+      history.push("/");
+    }
+  }, [history, jwt.token]);
 
   const handleChange = (name) => (e) => {
-    // console.log(e.target.value);
     setValues({ ...values, [name]: e.target.value });
   };
 
@@ -32,10 +41,14 @@ const Signup = ({ history }) => {
       if (data.error) {
         setValues({ ...values, error: data.error });
       } else {
-        setValues({ ...values, error: "" });
+        setValues({ ...values, error: "", redirectToSignin: true });
       }
     });
   };
+
+  if (redirectToSignin) {
+    return <Redirect to='/signin' />;
+  }
 
   return (
     <div className='container'>

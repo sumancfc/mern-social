@@ -19,6 +19,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: "Password is required",
     },
+    about: {
+      type: String,
+      trim: true,
+    },
+    photo: {
+      data: Buffer,
+      contentType: String,
+    },
     salt: String,
     role: { type: Number, default: 0 },
   },
@@ -35,6 +43,15 @@ userSchema
   .get(function () {
     return this._password;
   });
+
+userSchema.path("hashed_password").validate(function (v) {
+  if (this._password && this._password.length < 6) {
+    this.invalidate("password", "Password must be at least 6  characters.");
+  }
+  if (this.isNew && !this._password) {
+    this.invalidate("password", "Password is required");
+  }
+}, null);
 
 userSchema.methods = {
   authenticate: function (plainText) {
@@ -55,14 +72,5 @@ userSchema.methods = {
     return Math.round(new Date().valueOf() * Math.random()) + "";
   },
 };
-
-userSchema.path("hashed_password").validate(function (v) {
-  if (this._password && this._password.length < 6) {
-    this.invalidate("password", "Password must be at least 6  characters.");
-  }
-  if (this.isNew && !this._password) {
-    this.invalidate("password", "Password is required");
-  }
-}, null);
 
 module.exports = mongoose.model("User", userSchema);

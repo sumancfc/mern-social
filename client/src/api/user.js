@@ -29,15 +29,15 @@ export const getUsers = async (signal) => {
 };
 
 //get user by id
-export const getUserById = async (userId, authtoken, signal) => {
+export const getUserById = async (params, credentials, signal) => {
   try {
-    const response = await fetch("/api/user/" + userId, {
+    const response = await fetch("/api/user/" + params.userId, {
       method: "GET",
       signal: signal,
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: "Bearer " + authtoken.t,
+        Authorization: "Bearer " + credentials.t,
       },
     });
     return await response.json();
@@ -47,16 +47,15 @@ export const getUserById = async (userId, authtoken, signal) => {
 };
 
 //update user
-export const updateUser = async (userId, authtoken, user) => {
+export const updateUser = async (params, credentials, user) => {
   try {
-    const response = await fetch("/api/user/" + userId, {
+    let response = await fetch("/api/user/" + params.userId, {
       method: "PUT",
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + authtoken.t,
+        Authorization: "Bearer " + credentials.t,
       },
-      body: JSON.stringify(user),
+      body: user,
     });
     return await response.json();
   } catch (err) {
@@ -65,14 +64,14 @@ export const updateUser = async (userId, authtoken, user) => {
 };
 
 //delete User
-export const deleteUser = async (userId, authtoken) => {
+export const deleteUser = async (params, credentials) => {
   try {
-    const response = await fetch("/api/user/" + userId, {
+    const response = await fetch("/api/user/" + params.userId, {
       method: "DELETE",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: "Bearer " + authtoken.t,
+        Authorization: "Bearer " + credentials.t,
       },
     });
     return await response.json();

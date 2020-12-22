@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Redirect } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -15,6 +15,14 @@ const SignIn = (props) => {
   });
 
   const { email, password, error, redirectToReferrer } = values;
+
+  const jwt = auth.isAuthenticated();
+
+  useEffect(() => {
+    if (jwt.token) {
+      props.history.push("/");
+    }
+  }, [jwt.token, props.history]);
 
   const handleChange = (name) => (e) => {
     console.log(e.target.value);
